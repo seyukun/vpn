@@ -5,6 +5,8 @@ import (
 	"os"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/unix"
 )
 
 type ifreq struct {
@@ -20,7 +22,7 @@ func createInterface(flags uint16, name string) (string, *os.File, error) {
 		return "", nil, errors.New("device name too long")
 	}
 
-	f, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0600)
+	f, err := os.OpenFile("/dev/net/tun", unix.O_RDWR|unix.O_NONBLOCK, 0600)
 	if err != nil {
 		return "", nil, err
 	}
@@ -34,7 +36,10 @@ func createInterface(flags uint16, name string) (string, *os.File, error) {
 		name:  nbuf,
 		flags: flags,
 	}
-	if err := ioctl(fd, syscall.TUNSETIFF, unsafe.Pointer(&ifr)); err != nil {
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, syscall.TUNSETIFF, uintptr(unsafe.Pointer(&ifr))); errno != 0 {
+		return "", nil, err
+	}
+	if _, _, errno := syscall.Syscall(syscall.SYS_FCNTL, uintptr(fd), uintptr(unix.F_SETFL), uintptr(unix.O_NONBLOCK)); errno != 0 {
 		return "", nil, err
 	}
 	return cstringToGoString(ifr.name[:]), f, nil
