@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -49,6 +50,7 @@ func main() {
 	// }
 
 	var wg sync.WaitGroup
+	ctx, ctxCancel := context.WithCancel(context.Background())
 	var remote string = os.Args[1]
 	remoteAddr, err := net.ResolveUDPAddr("udp", remote)
 	if err != nil {
@@ -61,14 +63,19 @@ func main() {
 		go func() {
 			defer wg.Done()
 			for {
-				buf := make([]byte, 1500)
-				if n, remoteAddr, err := conn.ReadFromUDP(buf); err != nil {
-					fmt.Fprintf(os.Stderr, "[udp](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
-				} else if n != 0 {
-					go fmt.Printf("[udp](%s:%d) Log: recieved from %s\n", macro.FILE__(), macro.LINE__(), remoteAddr.String())
-					tun.Write(buf[:n])
-				} else {
-					time.Sleep(time.Millisecond)
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					buf := make([]byte, 1500)
+					if n, remoteAddr, err := conn.ReadFromUDP(buf); err != nil {
+						fmt.Fprintf(os.Stderr, "[udp](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
+					} else if n != 0 {
+						go fmt.Printf("[udp](%s:%d) Log: recieved from %s\n", macro.FILE__(), macro.LINE__(), remoteAddr.String())
+						tun.Write(buf[:n])
+					} else {
+						time.Sleep(time.Millisecond)
+					}
 				}
 			}
 		}()
@@ -79,14 +86,19 @@ func main() {
 		go func() {
 			defer wg.Done()
 			for {
-				buf := make([]byte, 1500)
-				if n, err := tun.Read(buf); err != nil {
-					fmt.Fprintf(os.Stderr, "[tun](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
-				} else if n != 0 {
-					go fmt.Printf("[tun](%s:%d) Log: recieved from %s\n", macro.FILE__(), macro.LINE__(), tun)
-					conn.WriteToUDP(buf[:n], remoteAddr)
-				} else {
-					time.Sleep(time.Millisecond)
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					buf := make([]byte, 1500)
+					if n, err := tun.Read(buf); err != nil {
+						fmt.Fprintf(os.Stderr, "[tun](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
+					} else if n != 0 {
+						go fmt.Printf("[tun](%s:%d) Log: recieved from %s\n", macro.FILE__(), macro.LINE__(), tun)
+						conn.WriteToUDP(buf[:n], remoteAddr)
+					} else {
+						time.Sleep(time.Millisecond)
+					}
 				}
 			}
 		}()
@@ -96,6 +108,7 @@ func main() {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
 	fmt.Println("Shutting down...")
+	ctxCancel()
 	wg.Wait()
 	fmt.Println("All goroutines finished")
 }
