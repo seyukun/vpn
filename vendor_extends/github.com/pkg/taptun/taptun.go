@@ -21,6 +21,7 @@ func NewTun(name string) (*Tun, error) {
 	n, f, err := openTun(name)
 	return &Tun{
 		ReadWriteCloser: f,
+		Fd:              f.Fd(),
 		name:            n,
 	}, err
 }
@@ -34,6 +35,7 @@ func OpenTun() (*Tun, error) {
 // Tun represents a TUN Virtual Point-to-Point network device.
 type Tun struct {
 	io.ReadWriteCloser
+	Fd   uintptr
 	name string
 }
 
