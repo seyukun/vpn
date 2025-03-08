@@ -21,10 +21,10 @@ func main() {
 	}
 	defer tun.Close()
 	fmt.Printf("[tun](%s:%d) %s opened\n", macro.FILE__(), macro.LINE__(), tun)
-	if err := syscall.SetNonblock(int(tun.Fd), true); err != nil {
-		fmt.Fprintf(os.Stderr, "[tun](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
-		os.Exit(1)
-	}
+	// if err := syscall.SetNonblock(int(tun.Fd), true); err != nil {
+	// 	fmt.Fprintf(os.Stderr, "[tun](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
+	// 	os.Exit(1)
+	// }
 
 	addr, err := net.ResolveUDPAddr("udp", ":12345")
 	if err != nil {
@@ -37,16 +37,16 @@ func main() {
 		os.Exit(1)
 	}
 	defer conn.Close()
-	fmt.Printf("[udp](%s:%d) %s opened\n", macro.FILE__(), macro.LINE__(), conn.LocalAddr())
-	if connFd, err := conn.File(); err != nil {
-		fmt.Fprintf(os.Stderr, "[udp](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
-		os.Exit(1)
-	} else {
-		if err := syscall.SetNonblock(int(connFd.Fd()), true); err != nil {
-			fmt.Fprintf(os.Stderr, "[udp](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
-			os.Exit(1)
-		}
-	}
+	// fmt.Printf("[udp](%s:%d) %s opened\n", macro.FILE__(), macro.LINE__(), conn.LocalAddr())
+	// if connFd, err := conn.File(); err != nil {
+	// 	fmt.Fprintf(os.Stderr, "[udp](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
+	// 	os.Exit(1)
+	// } else {
+	// 	if err := syscall.SetNonblock(int(connFd.Fd()), true); err != nil {
+	// 		fmt.Fprintf(os.Stderr, "[udp](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
+	// 		os.Exit(1)
+	// 	}
+	// }
 
 	var wg sync.WaitGroup
 	var remote string = os.Args[1]
@@ -56,7 +56,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -74,7 +74,7 @@ func main() {
 		}()
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
