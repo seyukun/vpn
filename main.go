@@ -1,23 +1,17 @@
 package main
 
 import (
-	"io"
 	"log"
-	"net"
-	"net/http"
-	"net/netip"
+	"os"
+	"os/signal"
 
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
-	"golang.zx2c4.com/wireguard/tun/netstack"
+	"golang.zx2c4.com/wireguard/tun"
 )
 
 func main() {
-	tun, tnet, err := netstack.CreateNetTUN(
-		[]netip.Addr{netip.MustParseAddr("10.0.0.10")},
-		[]netip.Addr{netip.MustParseAddr("1.1.1.1"), netip.MustParseAddr("1.0.0.1")},
-		1420,
-	)
+	tun, err := tun.CreateTUN("wg0", device.DefaultMTU)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -30,16 +24,10 @@ persistent_keepalive_interval=25
 endpoint=153.127.192.151:58120
 `)
 	dev.Up()
-	listener, err := tnet.ListenTCP(&net.TCPAddr{Port: 80})
-	if err != nil {
-		log.Panicln(err)
-	}
-	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		log.Printf("> %s - %s - %s", request.RemoteAddr, request.URL.String(), request.UserAgent())
-		io.WriteString(writer, "Hello from userspace TCP!")
-	})
-	err = http.Serve(listener, nil)
-	if err != nil {
-		log.Panicln(err)
-	}
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+	<-sig
+
+	dev.Down()
 }
