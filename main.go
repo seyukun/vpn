@@ -23,10 +23,10 @@ func main() {
 	}
 	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelVerbose, ""))
 	dev.IpcSet(`private_key=
- public_key=
- listen_port=58120
- allowed_ip=10.0.0.20/32
- persistent_keepalive_interval=25
+public_key=
+listen_port=58120
+allowed_ip=10.0.0.20/32
+persistent_keepalive_interval=25
  `)
 	dev.Up()
 	listener, err := tnet.ListenTCP(&net.TCPAddr{Port: 80})
