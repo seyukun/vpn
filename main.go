@@ -21,10 +21,10 @@ func main() {
 	}
 	defer tun.Close()
 	fmt.Printf("[tun](%s:%d) %s opened\n", macro.FILE__(), macro.LINE__(), tun)
-	// if err := syscall.SetNonblock(int(tun.Fd), true); err != nil {
-	// 	fmt.Fprintf(os.Stderr, "[tun](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
-	// 	os.Exit(1)
-	// }
+	if err := syscall.SetNonblock(int(tun.Fd), true); err != nil {
+		fmt.Fprintf(os.Stderr, "[tun](%s:%d) Error: %s\n", macro.FILE__(), macro.LINE__(), err.Error())
+		os.Exit(1)
+	}
 
 	addr, err := net.ResolveUDPAddr("udp", ":12345")
 	if err != nil {
