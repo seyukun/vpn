@@ -211,7 +211,7 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 					if ip, port, err := stunParseStunBindingResponse(bufs[0]); err != nil {
 						device.log.Verbosef("Received message with unknown type: %v", err)
 					} else {
-						device.log.Verbosef("Received stun [address:port]: [%v:%v]", ip, port)
+						device.log.Verbosef("Received stun: [%v:%v]", ip, port)
 					}
 				default:
 					device.log.Verbosef("Received message with unknown type")
