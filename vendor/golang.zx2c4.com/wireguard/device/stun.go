@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	StunResponseType         = 0x0101
 	stunMagicCookie          = 0x2112A442
 	stunXorMappedAddressType = 0x0020
 )

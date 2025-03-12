@@ -78,7 +78,7 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 		device.queue.handshake.wg.Done()
 		device.net.stopping.Done()
 	}()
-	
+
 	stun.InitTransactionId()
 
 	device.log.Verbosef("Routine: receive incoming %s - started", recvName)
@@ -206,14 +206,22 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 				}
 
 			default:
+
+				// short message (for stun)
+
 				msgTypeShort := binary.LittleEndian.Uint16(packet[:2])
+
 				switch msgTypeShort {
-				case 257:
+
+				// check if stun
+
+				case StunResponseType:
 					if ip, port, err := stun.ParseStunBindingResponse(bufs[0]); err != nil {
 						device.log.Verbosef("Received message with unknown type: %v", err)
 					} else {
 						device.log.Verbosef("Received stun: [%v:%v]", ip, port)
 					}
+
 				default:
 					device.log.Verbosef("Received message with unknown type")
 				}
