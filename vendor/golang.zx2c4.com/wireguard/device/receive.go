@@ -71,7 +71,6 @@ func (peer *Peer) keepKeyFreshReceiving() {
  * IPv4 and IPv6 (separately)
  */
 func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.ReceiveFunc) {
-	stunInitTransactionId()
 	recvName := recv.PrettyName()
 	defer func() {
 		device.log.Verbosef("Routine: receive incoming %s - stopped", recvName)
@@ -79,6 +78,8 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 		device.queue.handshake.wg.Done()
 		device.net.stopping.Done()
 	}()
+	
+	stun.InitTransactionId()
 
 	device.log.Verbosef("Routine: receive incoming %s - started", recvName)
 
@@ -208,7 +209,7 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 				msgTypeShort := binary.LittleEndian.Uint16(packet[:2])
 				switch msgTypeShort {
 				case 257:
-					if ip, port, err := stunParseStunBindingResponse(bufs[0]); err != nil {
+					if ip, port, err := stun.ParseStunBindingResponse(bufs[0]); err != nil {
 						device.log.Verbosef("Received message with unknown type: %v", err)
 					} else {
 						device.log.Verbosef("Received stun: [%v:%v]", ip, port)

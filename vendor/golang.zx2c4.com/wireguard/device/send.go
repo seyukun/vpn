@@ -101,11 +101,11 @@ func (peer *Peer) SendStunBindingRequest() {
 	if remoteAddr, err := net.ResolveUDPAddr("udp", "stun.l.google.com:19302"); err != nil {
 		peer.device.log.Verbosef("%v - %s", peer, err)
 	} else {
-		if req, _, err := stunCreateStunBindingRequest(); err != nil {
+		if stunReq, _, err := stun.CreateStunBindingRequest(); err != nil {
 			peer.device.log.Verbosef("%v - %s", peer, err)
 		} else {
 			peer.device.log.Verbosef("%v - Sending stun packet: %v", peer, remoteAddr.AddrPort())
-			peer.device.net.bind.Send([][]byte{req}, &conn.StdNetEndpoint{AddrPort: remoteAddr.AddrPort()})
+			peer.device.net.bind.Send([][]byte{stunReq}, &conn.StdNetEndpoint{AddrPort: remoteAddr.AddrPort()})
 		}
 	}
 }

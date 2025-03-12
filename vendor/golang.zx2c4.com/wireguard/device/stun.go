@@ -13,7 +13,13 @@ const (
 	stunXorMappedAddressType = 0x0020
 )
 
-var gTransactionId []byte = make([]byte, 12)
+type Stun struct {
+	transactionId []byte
+}
+
+var stun = Stun{
+	transactionId: make([]byte, 12),
+}
 
 /*
 # STUN HEADER FORMAT
@@ -34,20 +40,20 @@ used in both requests and responses
 => 160bits => 20 bytes
 */
 
-func stunInitTransactionId() (err error) {
-	if _, err := rand.Read(gTransactionId); err != nil {
+func (stun *Stun) InitTransactionId() (err error) {
+	if _, err := rand.Read(stun.transactionId); err != nil {
 		return err
 	}
 	return nil
 }
 
-func stunCreateStunBindingRequest() (req []byte, transactionId []byte, err error) {
+func (stun *Stun) CreateStunBindingRequest() (req []byte, transactionId []byte, err error) {
 	req = make([]byte, 20)                                // 160 bits
 	binary.BigEndian.PutUint16(req[0:2], 0x0001)          // 0 ~ 15 bit  (Message Type)
 	binary.BigEndian.PutUint16(req[2:4], 0)               // 16 ~ 31 bit (Message Length)
 	binary.BigEndian.PutUint32(req[4:8], stunMagicCookie) // 32 ~ 63 bit (Magic Cookie)
-	copy(req[8:20], gTransactionId)                        // 64 ~ 159 bit (Transaction ID)
-	return req, gTransactionId, nil
+	copy(req[8:20], stun.transactionId)                   // 64 ~ 159 bit (Transaction ID)
+	return req, stun.transactionId, nil
 }
 
 /*
@@ -63,7 +69,7 @@ used in responses only
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
 
-func stunParseStunBindingResponse(resp []byte) (ip net.IP, port int, err error) {
+func (stun *Stun) ParseStunBindingResponse(resp []byte) (ip net.IP, port int, err error) {
 	if resp[0]>>6 != 0 || len(resp) < 20 {
 		return nil, 0, errors.New("STUN response length is insufficient")
 	}
@@ -75,7 +81,7 @@ func stunParseStunBindingResponse(resp []byte) (ip net.IP, port int, err error) 
 
 	if respCookie != stunMagicCookie {
 		return nil, 0, errors.New("STUN response has invalid magic cookie")
-	} else if string(respTransactionId) != string(gTransactionId) {
+	} else if string(respTransactionId) != string(stun.transactionId) {
 		return nil, 0, errors.New("STUN response has invalid transaction id")
 	} else if msgType != 0x0101 {
 		return nil, 0, errors.New("STUN response has invalid message type")
@@ -126,7 +132,7 @@ func stunParseStunBindingResponse(resp []byte) (ip net.IP, port int, err error) 
 				ip[3] = attrValue[7] ^ byte(stunMagicCookie&0xff)
 				// The remaining 12 bytes are XORed with the Transaction Id
 				for i := 0; i < 12; i++ {
-					ip[4+i] = attrValue[8+i] ^ gTransactionId[i]
+					ip[4+i] = attrValue[8+i] ^ stun.transactionId[i]
 				}
 				return ip, int(port), nil
 			} else {
