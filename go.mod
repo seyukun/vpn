@@ -12,3 +12,5 @@ require (
 )
 
 replace golang.zx2c4.com/wireguard => ./replace/golang.zx2c4.com/wireguard
+
+replace golang.org/x/crypto/poly1305 => ./replace/golang.org/x/crypto/poly1305
