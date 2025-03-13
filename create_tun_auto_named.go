@@ -7,13 +7,16 @@ import (
 )
 
 func createTunAutoNamed(name string, mtu int) (wgtun.Device, error) {
+	var tun wgtun.Device = nil
+	var err error = nil
+
 	for i := 0; i < 100; i++ {
-		tun, err := wgtun.CreateTUN(fmt.Sprintf("utun%d", i), mtu)
-		if err != nil {
+		if tun, err = wgtun.CreateTUN(fmt.Sprintf("utun%d", i), mtu); err != nil {
 			continue
+		} else {
+			return tun, nil
 		}
-		return tun, nil
 	}
 
-	return nil, fmt.Errorf("failed to create a device")
+	return nil, err
 }
