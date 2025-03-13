@@ -581,6 +581,21 @@ func CreateTUN(name string, mtu int) (Device, error) {
 	return CreateTUNFromFile(fd, mtu)
 }
 
+func CreateTunAutoNamed(name string, mtu int) (Device, error) {
+	var tun Device = nil
+	var err error = nil
+
+	for i := 0; i < 100; i++ {
+		if tun, err = CreateTUN(fmt.Sprintf("tun%d", i), mtu); err != nil {
+			continue
+		} else {
+			return tun, nil
+		}
+	}
+
+	return nil, err
+}
+
 // CreateTUNFromFile creates a Device from an os.File with the provided MTU.
 func CreateTUNFromFile(file *os.File, mtu int) (Device, error) {
 	tun := &NativeTun{
