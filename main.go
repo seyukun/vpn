@@ -12,12 +12,14 @@ import (
 )
 
 func main() {
-	tun, err := tun.CreateTUN("wg0", device.DefaultMTU)
+	flagsDefault.ParseFlags()
+
+	tun, err := tun.CreateTUN(flagsDefault.DeviceName, device.DefaultMTU)
 	if err != nil {
 		log.Panic(err)
 	}
 	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelVerbose, ""))
-	if file, err := os.OpenFile(".config", os.O_RDONLY, 0); err != nil {
+	if file, err := os.OpenFile(flagsDefault.ConfigFile, os.O_RDONLY, 0); err != nil {
 		log.Panic(err)
 	} else {
 		fbytes, err := io.ReadAll(file)
