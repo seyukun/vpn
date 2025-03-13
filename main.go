@@ -6,19 +6,27 @@ import (
 	"os"
 	"os/signal"
 
-	"golang.zx2c4.com/wireguard/conn"
-	"golang.zx2c4.com/wireguard/device"
-	"golang.zx2c4.com/wireguard/tun"
+	wgconn "golang.zx2c4.com/wireguard/conn"
+	wgdevice "golang.zx2c4.com/wireguard/device"
+	wgtun "golang.zx2c4.com/wireguard/tun"
 )
 
 func main() {
+	var tun wgtun.Device = nil
+	var err error = nil
+
 	flagsDefault.ParseFlags()
 
-	tun, err := tun.CreateTUN(flagsDefault.DeviceName, device.DefaultMTU)
-	if err != nil {
-		log.Panic(err)
+	if flagsDefault.DeviceAuto {
+		tun, err = createTunAutoNamed(flagsDefault.DeviceName, wgdevice.DefaultMTU)
+	} else {
+		tun, err = wgtun.CreateTUN(flagsDefault.DeviceName, wgdevice.DefaultMTU)
+		if err != nil {
+			log.Panic(err)
+		}
 	}
-	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelVerbose, ""))
+
+	dev := wgdevice.NewDevice(tun, wgconn.NewDefaultBind(), wgdevice.NewLogger(wgdevice.LogLevelVerbose, ""))
 	if file, err := os.OpenFile(flagsDefault.ConfigFile, os.O_RDONLY, 0); err != nil {
 		log.Panic(err)
 	} else {

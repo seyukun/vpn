@@ -6,15 +6,18 @@ import (
 
 type Flags struct {
 	DeviceName string
+	DeviceAuto bool
 	ConfigFile string
 }
 
 var flagsDefault = Flags{}
 
-func (FlagsDefault *Flags) ParseFlags() {
+func (flags *Flags) ParseFlags() {
 	deviceName := flag.String("device", "wg", "Name of the device")
+	deviceAuto := flag.Bool("auto", false, "Automatically create a device")
 	configFile := flag.String("config", ".config", "Path to the configuration file")
 	flag.Parse()
-	FlagsDefault.DeviceName = *deviceName
-	FlagsDefault.ConfigFile = *configFile
+	flags.DeviceName = *deviceName
+	flags.DeviceAuto = *deviceAuto
+	flags.ConfigFile = *configFile
 }
