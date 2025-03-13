@@ -64,6 +64,13 @@ paths:
       summary: Get user connection configuration
       description: |-
         Get user connection configuration.
+      parameters:
+        - in: query
+          name: session_id
+          schema:
+            type: string
+          required: true
+          description: session_id
       responses:
         200:
           description: OK
@@ -114,6 +121,9 @@ paths:
                   config:
                     type: string
                     description: configuration
+                  session_id:
+                    type: string
+                    description: session_id
         400:
           description: Bad Request
         403:
