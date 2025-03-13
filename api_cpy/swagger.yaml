@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: WG-VPM API
+  description: |-
+    This API registers and provides user connection infomation.
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: yushin-sato@kalytero.ne.jp
+  license:
+    name: BSD-4
+    url: https://github.com/kalytero/LICENSE-BSD4
+  version: 0.0.1
+servers:
+  - url: https://wgvpm.kalyte.ro/api/v0.0.1
+tags:
+  # - name: organization
+  #   description: organization
+  - name: user
+    description: user
+paths:
+  # /organization:
+  #   get:
+  #     tags: [organization]
+  #     summary: Get current organization
+  #     description: |-
+  #       Get current organization.
+  #     responses:
+  #       200:
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 type: string
+  #       400:
+  #         description: Bad Request
+  #       403:
+  #         description: Forbidden
+  /user:
+    get:
+      tags: [user]
+      summary: Get current user
+      description: |-
+        Get current user.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: string
+                    description: user
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden
+  /user/connection:
+    get:
+      tags: [user]
+      summary: Get user connection configuration
+      description: |-
+        Get user connection configuration.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  config:
+                    type: string
+                    description: configuration
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden
+    post:
+      tags: [user]
+      summary: Register connection ip:port and Get user connection configuration
+      description: |-
+        Register connection ip:port and Get user connection configuration.
+      parameters:
+        - in: query
+          name: config
+          schema:
+            type: object
+            properties:
+              ip:
+                type: string
+              port:
+                type: integer
+              nat_type:
+                type: string
+                enum:
+                  - "full-cone"
+                  - "restricted-cone"
+                  - "port-restricted-cone"
+                  - "symmetric"
+          required: true
+          description: configuration
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  config:
+                    type: string
+                    description: configuration
+        400:
+          description: Bad Request
+        403:
+          description: Forbidden
+# security:
+#   - bearerAuth: []
+# components:
+#   securitySchemes:
+#     bearerAuth:
+#       type: http
+#       scheme: bearer
+#       bearerFormat: JWT
