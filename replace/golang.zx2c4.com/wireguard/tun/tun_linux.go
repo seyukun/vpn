@@ -581,7 +581,7 @@ func CreateTUN(name string, mtu int) (Device, error) {
 	return CreateTUNFromFile(fd, mtu)
 }
 
-func CreateTunAutoNamed(name string, mtu int) (Device, error) {
+func CreateTUNAutoNamed(name string, mtu int) (Device, error) {
 	var tun Device = nil
 	var err error = nil
 

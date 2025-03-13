@@ -17,12 +17,11 @@ func main() {
 
 	flagsDefault.ParseFlags()
 
+	var createTUN = wgtun.CreateTUN
 	if flagsDefault.DeviceAuto {
-		tun, err = wgtun.CreateTunAutoNamed(flagsDefault.DeviceName, wgdevice.DefaultMTU)
-	} else {
-		tun, err = wgtun.CreateTUN(flagsDefault.DeviceName, wgdevice.DefaultMTU)
+		createTUN = wgtun.CreateTUNAutoNamed
 	}
-	if err != nil {
+	if tun, err = createTUN(flagsDefault.DeviceName, wgdevice.DefaultMTU); err != nil {
 		log.Panic(err)
 	}
 
