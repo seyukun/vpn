@@ -21,9 +21,9 @@ func main() {
 		tun, err = createTunAutoNamed(flagsDefault.DeviceName, wgdevice.DefaultMTU)
 	} else {
 		tun, err = wgtun.CreateTUN(flagsDefault.DeviceName, wgdevice.DefaultMTU)
-		if err != nil {
-			log.Panic(err)
-		}
+	}
+	if err != nil {
+		log.Panic(err)
 	}
 
 	dev := wgdevice.NewDevice(tun, wgconn.NewDefaultBind(), wgdevice.NewLogger(wgdevice.LogLevelVerbose, ""))
