@@ -37,41 +37,17 @@ paths:
                     maxLength: 1024
                 additionalProperties: false
         401:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/401"
         403:
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/403"
         406:
-          description: Not Acceptable
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/406"
         415:
-          description: Unsupported Media Type
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/415"
         429:
-          description: Too Many Requests
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/429"
         default:
-          description: Default
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/errorDefault"
   /user:
     get:
       tags: [user]
@@ -89,6 +65,18 @@ paths:
                   user:
                     type: string
                     description: user
+                    pattern: ^[a-zA-Z0-9_]*$
+                    maxLength: 64
+        401:
+          $ref: "#/components/responses/401"
+        403:
+          $ref: "#/components/responses/403"
+        404:
+          $ref: "#/components/responses/404"
+        406:
+          $ref: "#/components/responses/406"
+        429:
+          $ref: "#/components/responses/429"
   /user/connection:
     get:
       tags: [user]
@@ -99,41 +87,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  config:
-                    type: string
-                    description: configuration
+                $ref: "#/components/schemas/config"
         401:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/401"
         403:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/403"
         404:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/404"
         406:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/406"
         429:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/429"
+        default:
+          $ref: "#/components/responses/errorDefault"
     post:
       tags: [user]
       summary: Register [IP:Port] and Fetch filtered configuration
@@ -174,44 +140,19 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: false
-                properties:
-                  config:
-                    type: string
-                    pattern: ^([a-zA-Z0-9_]+)=(.+)(\n[a-zA-Z0-9_]+=(.+))*$
-                    maxLength: 102400
-                    description: configuration
+                $ref: "#/components/schemas/config"
         401:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/401"
         403:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-        404:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/403"
         406:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/406"
+        415:
+          $ref: "#/components/responses/415"
         429:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
+          $ref: "#/components/responses/429"
+        default:
+          $ref: "#/components/responses/errorDefault"
 security:
   - bearerAuth: []
 components:
@@ -220,6 +161,50 @@ components:
       type: http
       scheme: bearer
       description: Credentials
+  responses:
+    401:
+      $ref: "#/components/schemas/error"
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    403:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    404:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    406:
+      description: Not Acceptable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    415:
+      description: Unsupported Media Type
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    429:
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    errorDefault:
+      description: Default
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
   schemas:
     error:
       type: object
@@ -230,3 +215,12 @@ components:
           description: error message
           pattern: ^[a-zA-Z0-9\s.,!?-]*$
           maxLength: 1024
+    config:
+      type: object
+      additionalProperties: false
+      properties:
+        config:
+          type: string
+          pattern: ^([a-zA-Z0-9_]+)=(.+)(\n[a-zA-Z0-9_]+=(.+))*$
+          maxLength: 102400
+          description: configuration
