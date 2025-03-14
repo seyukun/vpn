@@ -10,29 +10,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Network {
+  id      Int    @id @default(autoincrement())
+  name    String
+  ipRange String
+  Users    User[]
+}
+
 model User {
   id       Int       @id @default(autoincrement())
   email    String    @unique
   password String
   username String
-  sessions Session[]
-}
-
-model Peer {
-  id                          Int      @id @default(autoincrement())
-  Session                     Session?
-  privateKey                  String
-  publicKey                   String
-  endpoint                    String
-  allowed_ip                  String
-  persistentKeepaliveInterval Int
+  Networks Network[]
+  Sessions Session[]
 }
 
 model Session {
-  id     Int    @id @default(autoincrement())
-  bearer String @unique @default(uuid())
-  user   User   @relation(fields: [userId], references: [id])
-  userId Int
-  peer   Peer   @relation(fields: [peerId], references: [id])
-  peerId Int    @unique
+  id            Int      @id @default(autoincrement())
+  authorization String   @unique @default(uuid())
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+  User          User     @relation(fields: [userId], references: [id])
+  userId        Int
+  Peer          Peer?
+}
+
+model Peer {
+  id                          Int     @id @default(autoincrement())
+  privateKey                  String
+  publicKey                   String
+  endpoint                    String
+  persistentKeepaliveInterval Int
+  Session                     Session @relation(fields: [sessionId], references: [id])
+  sessionId                   Int     @unique
 }
