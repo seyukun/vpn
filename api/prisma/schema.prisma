@@ -18,14 +18,21 @@ model User {
   sessions Session[]
 }
 
-model Session {
-  id                          Int    @id @default(autoincrement())
-  user                        User?  @relation(fields: [userId], references: [id])
-  userId                      Int?
-  bearerToken                 String @unique @default(uuid())
+model Peer {
+  id                          Int      @id @default(autoincrement())
+  Session                     Session?
   privateKey                  String
   publicKey                   String
   endpoint                    String
   allowed_ip                  String
   persistentKeepaliveInterval Int
+}
+
+model Session {
+  id     Int    @id @default(autoincrement())
+  bearer String @unique @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int
+  peer   Peer   @relation(fields: [peerId], references: [id])
+  peerId Int    @unique
 }
