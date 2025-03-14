@@ -28,14 +28,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: bearer token
-                    pattern: ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$
-                    maxLength: 1024
-                additionalProperties: false
+                $ref: "#/components/schemas/bearer"
         401:
           $ref: "#/components/responses/401"
         403:
@@ -108,32 +101,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: false
-              properties:
-                ipv4:
-                  type: string
-                  pattern: |-
-                    ^(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
-                    (?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
-                    (?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
-                    (?:25[0-5]|2[0-4]\d|[01]?\d?\d)$
-                  maxLength: 15
-                port:
-                  type: integer
-                  minimum: 1
-                  maximum: 65535
-                  format: int32
-                nat_type:
-                  type: string
-                  enum:
-                    [
-                      "full-cone",
-                      "restricted-cone",
-                      "port-restricted-cone",
-                      "symmetric",
-                    ]
-              required: [ipv4, port, nat_type]
+              $ref: "#/components/schemas/register"
       responses:
         200:
           description: OK
@@ -215,6 +183,43 @@ components:
           description: error message
           pattern: ^[a-zA-Z0-9\s.,!?-]*$
           maxLength: 1024
+      required: [message]
+    bearer:
+      type: object
+      properties:
+        token:
+          type: string
+          description: bearer token
+          pattern: ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$
+          maxLength: 1024
+      additionalProperties: false
+    register:
+      type: object
+      additionalProperties: false
+      properties:
+        ipv4:
+          type: string
+          pattern: |-
+            ^(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
+            (?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
+            (?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
+            (?:25[0-5]|2[0-4]\d|[01]?\d?\d)$
+          maxLength: 15
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          format: int32
+        nat_type:
+          type: string
+          enum:
+            [
+              "full-cone",
+              "restricted-cone",
+              "port-restricted-cone",
+              "symmetric",
+            ]
+      required: [ipv4, port, nat_type]
     config:
       type: object
       additionalProperties: false
@@ -224,3 +229,4 @@ components:
           pattern: ^([a-zA-Z0-9_]+)=(.+)(\n[a-zA-Z0-9_]+=(.+))*$
           maxLength: 102400
           description: configuration
+      required: [config]
