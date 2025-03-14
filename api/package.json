@@ -3,9 +3,11 @@
   "packageManager": "yarn@4.1.1",
   "dependencies": {
     "@prisma/client": "^6.5.0",
+    "express": "^4.21.2",
     "prisma": "^6.5.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^22.13.10",
     "typescript": "^5.8.2"
   }
