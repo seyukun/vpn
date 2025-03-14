@@ -12,3 +12,7 @@ node_modules
 
 #!.yarn/cache
 .pnp.*
+
+# Prisma
+/prisma/*
+!prisma/*.prisma
