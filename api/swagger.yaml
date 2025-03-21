@@ -16,37 +16,41 @@ tags:
   - name: user
     description: user
 paths:
-  /signup:
-    post:
-      tags: [user]
-      summary: Sign up
-      description: |-
-        Give breaer token
+  /user:
+    get:
+      summary: |-
+        Get current user info
       responses:
         200:
           description: OK
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/bearer"
-        401:
-          $ref: "#/components/responses/401"
-        403:
-          $ref: "#/components/responses/403"
-        406:
-          $ref: "#/components/responses/406"
-        415:
-          $ref: "#/components/responses/415"
-        429:
-          $ref: "#/components/responses/429"
-        default:
-          $ref: "#/components/responses/errorDefault"
-  /user:
-    get:
-      tags: [user]
-      summary: Get current user
-      description: |-
-        Get current user.
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: username
+                  pattern: ^[a-zA-Z0-9_]*$
+                  maxLength: 64
+                bearer:
+                  type: string
+                  description: breaer token
+                  pattern: ^[a-zA-Z0-9_]*$
+                  maxLength: 64
+    put:
+      summary: |-
+        Update current user info
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: username
+                  pattern: ^[a-zA-Z0-9_]*$
+                  maxLength: 64
       responses:
         200:
           description: OK
@@ -60,67 +64,42 @@ paths:
                     description: user
                     pattern: ^[a-zA-Z0-9_]*$
                     maxLength: 64
-        401:
-          $ref: "#/components/responses/401"
-        403:
-          $ref: "#/components/responses/403"
-        404:
-          $ref: "#/components/responses/404"
-        406:
-          $ref: "#/components/responses/406"
-        429:
-          $ref: "#/components/responses/429"
-  /user/connection:
+                  bearer:
+                    type: string
+                    description: breaer token
+                    pattern: ^[a-zA-Z0-9_]*$
+                    maxLength: 64
+  /user/config:
     get:
-      tags: [user]
-      summary: Fetch configuration
+      summary: |-
+        Get current user config
       responses:
         200:
           description: OK
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/config"
-        401:
-          $ref: "#/components/responses/401"
-        403:
-          $ref: "#/components/responses/403"
-        404:
-          $ref: "#/components/responses/404"
-        406:
-          $ref: "#/components/responses/406"
-        429:
-          $ref: "#/components/responses/429"
-        default:
-          $ref: "#/components/responses/errorDefault"
+              type: object
+              properties:
+                config:
+                  type: string
+                  pattern: ^([a-zA-Z0-9_]+)=(.+)(\n[a-zA-Z0-9_]+=(.+))*$
+                  maxLength: 102400
+                  description: configuration
     post:
-      tags: [user]
-      summary: Register [IP:Port] and Fetch filtered configuration
-      description: Register [IP:Port] and Fetch filtered (ignored me) configuration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/register"
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/config"
-        401:
-          $ref: "#/components/responses/401"
-        403:
-          $ref: "#/components/responses/403"
-        406:
-          $ref: "#/components/responses/406"
-        415:
-          $ref: "#/components/responses/415"
-        429:
-          $ref: "#/components/responses/429"
-        default:
-          $ref: "#/components/responses/errorDefault"
+      summary: |-
+        Register current user config
+  /users/{user_id}:
+    get:
+      summary: |-
+        Get selected user info
+    put:
+      summary: |-
+        Update selected user info
+        For admin
+  /users/{user_id}/config:
+    get:
+      summary: |-
+        Get selected users config
 security:
   - bearerAuth: []
 components:
@@ -131,7 +110,6 @@ components:
       description: Credentials
   responses:
     401:
-      $ref: "#/components/schemas/error"
       description: Unauthorized
       content:
         application/json:
