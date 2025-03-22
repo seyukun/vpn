@@ -25,18 +25,19 @@ paths:
           description: OK
           content:
             application/json:
-              type: object
-              properties:
-                username:
-                  type: string
-                  description: username
-                  pattern: ^[a-zA-Z0-9_]*$
-                  maxLength: 64
-                bearer:
-                  type: string
-                  description: breaer token
-                  pattern: ^[a-zA-Z0-9_]*$
-                  maxLength: 64
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: username
+                    pattern: ^[a-zA-Z0-9_]*$
+                    maxLength: 64
+                  bearer:
+                    type: string
+                    description: breaer token
+                    pattern: ^[a-zA-Z0-9_]*$
+                    maxLength: 64
     put:
       summary: |-
         Update current user info
@@ -78,137 +79,104 @@ paths:
           description: OK
           content:
             application/json:
-              type: object
-              properties:
-                config:
-                  type: string
-                  pattern: ^([a-zA-Z0-9_]+)=(.+)(\n[a-zA-Z0-9_]+=(.+))*$
-                  maxLength: 102400
-                  description: configuration
+              schema:
+                type: object
+                properties:
+                  public_key:
+                    type: string
+                    description: public key
+                    pattern: ^[a-z0-9]*$
+                    maxLength: 64
     post:
       summary: |-
         Register current user config
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                public_key:
+                  type: string
+                  description: public key
+                  pattern: ^[a-z0-9]*$
+                  maxLength: 64
+                endpoint:
+                  type: string
+                  description: endpoint
+                  pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{1,5}$
+                  maxLength: 21
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  public_key:
+                    type: string
+                    description: public key
+                    pattern: ^[a-z0-9]*$
+                    maxLength: 64
   /users/{user_id}:
     get:
       summary: |-
         Get selected user info
-    put:
-      summary: |-
-        Update selected user info
-        For admin
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: username
+                    pattern: ^[a-zA-Z0-9_]*$
+                    maxLength: 64
   /users/{user_id}/config:
     get:
       summary: |-
         Get selected users config
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  peers:
+                    type: array
+                    description: peers
+                    items:
+                      type: object
+                      properties:
+                        public_key:
+                          type: string
+                          description: peer public key
+                          pattern: ^[a-z0-9]*$
+                          maxLength: 64
+                        endpoint:
+                          type: string
+                          description: peer endpoint
+                          pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{1,5}$
+                          maxLength: 21
+                        allowed_ips:
+                          type: array
+                          description: allowed ips
+                          items:
+                            type: string
+                            description: allowed ip
+                            pattern: ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-9]{1,2}$
+                            maxLength: 18
+                        persistent_keepalive:
+                          type: integer
+                          description: persistent keepalive
+                          minimum: 5
+                          maximum: 25
+                          format: int32
 security:
   - bearerAuth: []
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      description: Credentials
-  responses:
-    401:
-      description: Unauthorized
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    403:
-      description: Forbidden
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    404:
-      description: Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    406:
-      description: Not Acceptable
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    415:
-      description: Unsupported Media Type
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    429:
-      description: Too Many Requests
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    errorDefault:
-      description: Default
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-  schemas:
-    error:
-      type: object
-      additionalProperties: false
-      properties:
-        message:
-          type: string
-          description: error message
-          pattern: ^[a-zA-Z0-9\s.,!?-]*$
-          maxLength: 1024
-      required: [message]
-    bearer:
-      type: object
-      additionalProperties: false
-      properties:
-        token:
-          type: string
-          description: bearer token
-          pattern: ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$
-          maxLength: 1024
-      required: [token]
-    register:
-      type: object
-      additionalProperties: false
-      properties:
-        ipv4:
-          type: string
-          description: IPv4 address
-          pattern: |-
-            ^(?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
-            (?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
-            (?:25[0-5]|2[0-4]\d|[01]?\d?\d)\.
-            (?:25[0-5]|2[0-4]\d|[01]?\d?\d)$
-          maxLength: 15
-        port:
-          type: integer
-          description: port number
-          minimum: 1
-          maximum: 65535
-          format: int32
-        nat_type:
-          type: string
-          description: NAT type
-          enum:
-            [
-              "full-cone",
-              "restricted-cone",
-              "port-restricted-cone",
-              "symmetric",
-            ]
-      required: [ipv4, port, nat_type]
-    config:
-      type: object
-      additionalProperties: false
-      properties:
-        config:
-          type: string
-          pattern: ^([a-zA-Z0-9_]+)=(.+)(\n[a-zA-Z0-9_]+=(.+))*$
-          maxLength: 102400
-          description: configuration
-      required: [config]
