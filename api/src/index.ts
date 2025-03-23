@@ -1,111 +1,307 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { Logger } from "tslog";
+import crypto from "crypto";
 
 // Create a new instance of the logger
 const console = new Logger();
 process.on("uncaughtException", (error) => console.error(error));
 
 // Prisma
-const prisma = new PrismaClient();
+const Prisma = new PrismaClient();
 
 // Create a new express application
-const app = express();
-const routerV1 = express.Router();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const App = express();
+const RouterV01Beta = express.Router();
+App.use(express.json());
+App.use(express.urlencoded({ extended: true }));
 
-app.use("/v1", routerV1);
+App.use("/v0.1-beta", RouterV01Beta);
 
-routerV1.get("/", (_, res) => {
-  res.json({ status: "ok" });
+RouterV01Beta.get("/", async (req, res) => {
+  res.json({
+    version: "v0.1beta",
+  });
 });
 
-routerV1.get("/user/connection", async (req, res, next) => {
-  console.debug(req.path, req.headers);
-  if (
-    !req.headers.authorization ||
-    req.headers.authorization.startsWith("Bearer ")
-  ) {
-    res.status(401).json({ error: "Unauthorized" });
-  } else if (
-    !req.headers["content-type"] ||
-    req.headers["content-type"] !== "application/json"
-  ) {
-    res.status(400).json({ error: "Bad Request" });
-  } else {
-    const session = await prisma.session.findUnique({
-      where: { authorization: req.headers.authorization },
-      include: {
-        User: {
-          include: {
-            Networks: {
-              include: {
-                Users: {
-                  include: {
-                    Sessions: {
-                      include: {
-                        Peer: {
-                          include: {
-                            Session: {
-                              include: {
-                                User: { include: { Networks: true } },
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        Peer: true,
-      },
-    });
-    if (!session) {
-      res.status(401).json({ error: "Unauthorized" });
-    } else {
-      const peers = [
-        ...new Set(
-          session.User.Networks.flatMap((network) =>
-            network.Users.flatMap((user) =>
-              user.Sessions.filter((sess) => sess.id != session.id).map(
-                (sess) => sess.Peer
-              )
-            ).filter((user) => !!user)
-          ).filter((network) => !!network)
-        ),
-      ];
+RouterV01Beta.get("/signup", async (req, res) => {
+  try {
+    // Get Authorization
+    const Authorization = req.headers.authorization;
+    const AuthorizationSplit = Authorization?.split(" ");
+    const User =
+      AuthorizationSplit &&
+      AuthorizationSplit.length == 2 &&
+      AuthorizationSplit[0] == "Bearer"
+        ? await Prisma.user.findUnique({
+            where: { bearer: AuthorizationSplit[1] },
+          })
+        : null;
 
-      let config = "";
-      if (session.Peer) {
-        config += `private_key=${session.Peer.privateKey}\n`;
-        config += `listen_port=${session.Peer.endpoint.split(":")[1]}\n`;
-      }
-      peers.forEach((peer) => {
-        const allowed_ip = [
-          ...new Set(
-            peer.Session.User.Networks.flatMap((network) => network.ipRange)
-          ),
-        ];
-        config += `public_key=${peer.publicKey}\n`;
-        config += `endpoint=${peer.endpoint}\n`;
-        config += `allowed_ip=${allowed_ip.join(",")}\n`;
-        config += `persistent_keepalive_interval=${peer.persistentKeepaliveInterval}\n`;
+    // Create User
+    if (!User) {
+      const NewUser = await Prisma.user.create({
+        data: {
+          username: crypto.randomBytes(16).toString("hex"),
+          bearer: crypto.randomBytes(64).toString("hex"),
+        },
       });
-      res.json({ config: config });
+
+      // Send Response
+      res.status(200).json({
+        username: NewUser.username,
+        bearer: NewUser.bearer,
+      });
+      return;
     }
-    next();
+
+    // Send Response
+    res.status(200).json({
+      username: User.username,
+      bearer: User.bearer,
+    });
+    return;
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.all("*", (_, res) => {
+RouterV01Beta.get("/user", async (req, res) => {
+  try {
+    // Get Authorization
+    const Authorization = req.headers.authorization;
+    const AuthorizationSplit = Authorization?.split(" ");
+    const User =
+      AuthorizationSplit &&
+      AuthorizationSplit.length == 2 &&
+      AuthorizationSplit[0] == "Bearer"
+        ? await Prisma.user.findUnique({
+            where: { bearer: AuthorizationSplit[1] },
+          })
+        : null;
+    if (!User) {
+      res
+        .status(401)
+        .json({ code: "Unauthorized", message: "Invalid bearer token" });
+      return;
+    }
+
+    // Send Response
+    res.status(200).json({
+      username: User.username,
+    });
+    return;
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+RouterV01Beta.put("/user", async (req, res) => {
+  // Validate Content-Type
+  if (req.headers["content-type"] !== "application/json") {
+    res.status(406).json({
+      error: "UnsupportedType",
+      message: "Only application/json is supported",
+    });
+    return;
+  }
+
+  try {
+    // Get Authorization
+    const Authorization = req.headers.authorization;
+    const AuthorizationSplit = Authorization?.split(" ");
+    const User =
+      AuthorizationSplit &&
+      AuthorizationSplit.length == 2 &&
+      AuthorizationSplit[0] == "Bearer"
+        ? await Prisma.user.findUnique({
+            where: { bearer: AuthorizationSplit[1] },
+          })
+        : null;
+    if (!User) {
+      res
+        .status(401)
+        .json({ code: "Unauthorized", message: "Invalid bearer token" });
+      return;
+    }
+
+    // Validate Parameters
+    if (!req.body["username"]) {
+      res
+        .status(400)
+        .json({ code: "BadRequest", message: "Invalid Parameters" });
+      return;
+    }
+
+    // Update User
+    const UpdateUser = await Prisma.user.update({
+      where: {
+        id: User.id,
+      },
+      data: {
+        username: String(req.body["username"]),
+      },
+    });
+
+    // Send Response
+    res.status(200).json({
+      username: UpdateUser.username,
+    });
+    return;
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+RouterV01Beta.get("/user/config", async (req, res) => {
+  try {
+    // Get Authorization
+    const Authorization = req.headers.authorization;
+    const AuthorizationSplit = Authorization?.split(" ");
+    const User =
+      AuthorizationSplit &&
+      AuthorizationSplit.length == 2 &&
+      AuthorizationSplit[0] == "Bearer"
+        ? await Prisma.user.findUnique({
+            where: { bearer: AuthorizationSplit[1] },
+            select: { id: true, peer: true },
+          })
+        : null;
+    if (!User) {
+      res
+        .status(401)
+        .json({ code: "Unauthorized", message: "Invalid bearer token" });
+      return;
+    }
+
+    // Get Peers
+    const Peers = await Prisma.peer.findMany({
+      where: { userId: { not: User.id } },
+    });
+
+    // Send Response
+    res.status(200).json({
+      public_key: User.peer?.publicKey ?? "",
+      endpoint: User.peer?.endpoint ?? "",
+      peers: Peers.map((peer) => ({
+        publick_key: peer.publicKey,
+        endpoint: peer.endpoint,
+        allowed_ips: [`10.0.0.${peer.userId}/32`],
+        persistent_keepalive: 20,
+      })),
+    });
+    return;
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+RouterV01Beta.post("/user/config", async (req, res) => {
+  // Validate Content-Type
+  if (req.headers["content-type"] !== "application/json") {
+    res.status(406).json({
+      error: "UnsupportedType",
+      message: "Only application/json is supported",
+    });
+    return;
+  }
+
+  try {
+    // Get Authorization
+    const Authorization = req.headers.authorization;
+    const AuthorizationSplit = Authorization?.split(" ");
+    const User =
+      AuthorizationSplit &&
+      AuthorizationSplit.length == 2 &&
+      AuthorizationSplit[0] == "Bearer"
+        ? await Prisma.user.findUnique({
+            where: { bearer: AuthorizationSplit[1] },
+            select: { id: true, peer: true },
+          })
+        : null;
+    if (!User) {
+      res
+        .status(401)
+        .json({ code: "Unauthorized", message: "Invalid bearer token" });
+      return;
+    }
+
+    // Validate Parameters
+    const RegexPublicKey = /^[a-z0-9]{64}$/;
+    const RegexEndpoint =
+      /^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{1,5}$/;
+    if (
+      !req.body["public_key"] ||
+      !req.body["endpoint"] ||
+      !RegexPublicKey.test(String(req.body["public_key"])) ||
+      !RegexEndpoint.test(String(req.body["endpoint"]))
+    ) {
+      res.status(400).json({
+        code: "BadRequest",
+        message: "Invalid Parameters",
+      });
+      return;
+    }
+
+    // Create or Update Peer
+    const Peer =
+      User.peer === null
+        ? await Prisma.peer.create({
+            data: {
+              publicKey: String(req.body["public_key"]),
+              endpoint: String(req.body["endpoint"]),
+              allowedIps: `10.0.0.${User.id}/32`,
+              persistentKeepaliveInterval: 25,
+              user: {
+                connect: {
+                  id: User.id,
+                },
+              },
+            },
+          })
+        : await Prisma.peer.update({
+            where: {
+              id: User.peer.id,
+            },
+            data: {
+              publicKey: String(req.body["public_key"]),
+              endpoint: String(req.body["endpoint"]),
+              allowedIps: `10.0.0.${User.id}/32`,
+              persistentKeepaliveInterval: 25,
+            },
+          });
+
+    // Get Peers
+    const Peers = await Prisma.peer.findMany({
+      where: { userId: { not: User.id } },
+    });
+
+    // Send Response
+    res.status(200).json({
+      public_key: Peer.publicKey,
+      endpoint: Peer.endpoint,
+      peers: Peers.map((peer) => ({
+        public_key: peer.publicKey,
+        endpoint: peer.endpoint,
+        allowed_ips: [`10.0.0.${peer.userId}/32`],
+        persistent_keepalive: 20,
+      })),
+    });
+    return;
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+App.all("*", (_, res) => {
   res.status(404).json({ error: "Not found" });
 });
 
-app.listen(3000, () => {
-  prisma.$connect();
+App.listen(3000, () => {
+  Prisma.$connect();
 });
