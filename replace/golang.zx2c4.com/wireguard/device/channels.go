@@ -1,3 +1,15 @@
+/* ******************************************************************************************************************** */
+/*                                                                                                                      */
+/*                                                      :::    :::     :::     :::     :::   ::: ::::::::::: :::::::::: */
+/*   channels.go                                       :+:   :+:    :+: :+:   :+:     :+:   :+:     :+:     :+:         */
+/*                                                    +:+  +:+    +:+   +:+  +:+      +:+ +:+      +:+     +:+          */
+/*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
+/*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
+/*   Created: 2025/03/29 05:01:12 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
+/*   Updated: 2025/03/29 05:01:13 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*                                                                                                                      */
+/* ******************************************************************************************************************** */
+
 /* SPDX-License-Identifier: MIT
  *
  * Copyright (C) 2017-2023 WireGuard LLC. All Rights Reserved.
@@ -70,6 +82,27 @@ func newHandshakeQueue() *handshakeQueue {
 	}()
 	return q
 }
+
+/* ADDON START */
+
+type stunQueue struct {
+	c  chan QueueStunElement
+	wg sync.WaitGroup
+}
+
+func newStunQueue() *stunQueue {
+	q := &stunQueue{
+		c: make(chan QueueStunElement, QueueStunSize),
+	}
+	q.wg.Add(1)
+	go func() {
+		q.wg.Wait()
+		close(q.c)
+	}()
+	return q
+}
+
+/* ADDON END */
 
 type autodrainingInboundQueue struct {
 	c chan *QueueInboundElementsContainer

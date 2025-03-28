@@ -1,3 +1,15 @@
+/* ******************************************************************************************************************** */
+/*                                                                                                                      */
+/*                                                      :::    :::     :::     :::     :::   ::: ::::::::::: :::::::::: */
+/*   send.go                                           :+:   :+:    :+: :+:   :+:     :+:   :+:     :+:     :+:         */
+/*                                                    +:+  +:+    +:+   +:+  +:+      +:+ +:+      +:+     +:+          */
+/*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
+/*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
+/*   Created: 2025/03/29 02:44:39 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
+/*   Updated: 2025/03/29 05:01:53 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*                                                                                                                      */
+/* ******************************************************************************************************************** */
+
 /* SPDX-License-Identifier: MIT
  *
  * Copyright (C) 2017-2023 WireGuard LLC. All Rights Reserved.
@@ -94,8 +106,12 @@ func (peer *Peer) SendKeepalive() {
 		}
 	}
 	peer.SendStagedPackets()
+
+	/* ADDON */
 	peer.SendStunBindingRequest()
 }
+
+/* ADDON START */
 
 func (peer *Peer) SendStunBindingRequest() {
 	if remoteAddr, err := net.ResolveUDPAddr("udp", "stun.l.google.com:19302"); err != nil {
@@ -109,6 +125,8 @@ func (peer *Peer) SendStunBindingRequest() {
 		}
 	}
 }
+
+/* ADDON END */
 
 func (peer *Peer) SendHandshakeInitiation(isRetry bool) error {
 	if !isRetry {

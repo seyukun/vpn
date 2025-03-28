@@ -1,3 +1,15 @@
+/* ******************************************************************************************************************** */
+/*                                                                                                                      */
+/*                                                      :::    :::     :::     :::     :::   ::: ::::::::::: :::::::::: */
+/*   receive.go                                        :+:   :+:    :+: :+:   :+:     :+:   :+:     :+:     :+:         */
+/*                                                    +:+  +:+    +:+   +:+  +:+      +:+ +:+      +:+     +:+          */
+/*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
+/*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
+/*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
+/*   Updated: 2025/03/29 05:37:33 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*                                                                                                                      */
+/* ******************************************************************************************************************** */
+
 /* SPDX-License-Identifier: MIT
  *
  * Copyright (C) 2017-2023 WireGuard LLC. All Rights Reserved.
@@ -9,7 +21,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"io"
 	"net"
+	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -37,6 +52,12 @@ type QueueInboundElement struct {
 type QueueInboundElementsContainer struct {
 	sync.Mutex
 	elems []*QueueInboundElement
+}
+
+/* ADDON */
+type QueueStunElement struct {
+	ip   net.IP
+	port int
 }
 
 // clearPointers clears elem fields that contain pointers.
@@ -207,6 +228,8 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 
 			default:
 
+				/* ADDON START */
+
 				// short message (for stun)
 
 				msgTypeShort := binary.LittleEndian.Uint16(packet[:2])
@@ -219,12 +242,22 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 					if ip, port, err := stun.ParseStunBindingResponse(bufs[0]); err != nil {
 						device.log.Verbosef("Received message with unknown type: %v", err)
 					} else {
+						select {
+						case device.queue.stun.c <- QueueStunElement{
+							ip:   ip,
+							port: port,
+						}:
+						default:
+						}
 						device.log.Verbosef("Received stun: [%v:%v]", ip, port)
 					}
 
 				default:
 					device.log.Verbosef("Received message with unknown type")
 				}
+
+				/* ADDON END */
+
 				continue
 			}
 
@@ -447,6 +480,48 @@ func (device *Device) RoutineHandshake(id int) {
 		}
 	skip:
 		device.PutMessageBuffer(elem.buffer)
+	}
+}
+
+/* ADDON */
+func (device *Device) RoutineStun(id int) {
+	defer func() {
+		device.log.Verbosef("Routine: stun worker %d - stopped", id)
+		device.queue.encryption.wg.Done()
+	}()
+	device.log.Verbosef("Routine: stun worker %d - started", id)
+
+	for elem := range device.queue.stun.c {
+		// TODO
+		const url = "http://100.113.233.127.vpr.jp:3000/api/v0.1-beta/user/config"
+		const bearer = ""
+		jsonStr := `{"public_key":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","endpoint":"` + elem.ip.String() + `:` + strconv.Itoa(elem.port) + `"}`
+		req, err := http.NewRequest(
+			"POST",
+			url,
+			bytes.NewBuffer([]byte(jsonStr)),
+		)
+		if err != nil {
+			device.log.Errorf("Invalid stun value", err.Error())
+			continue
+		}
+		req.Header.Set("Content-type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+bearer)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			device.log.Errorf("Invalid api response", err.Error())
+			continue
+		}
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			device.log.Errorf("Error reading response body: %v", err)
+			goto closer
+		}
+		device.log.Verbosef("API Response body: %s", string(bodyBytes))
+		goto closer
+	closer:
+		resp.Body.Close()
 	}
 }
 
