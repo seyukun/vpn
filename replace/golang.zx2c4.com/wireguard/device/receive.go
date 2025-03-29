@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 00:45:05 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 00:47:13 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -508,7 +508,7 @@ func (device *Device) RoutineStun(id int) {
 			device.log.Errorf("Invalid api_url %s", baseUrl)
 			continue
 		}
-		fullUrl := baseUrl.ResolveReference(&url.URL{Path: "/user/config"})
+		fullUrl := baseUrl.JoinPath("/user/config")
 		publicKey := hex.EncodeToString(device.staticIdentity.publicKey[:])
 		endpoint := elem.ip.String() + `:` + strconv.Itoa(elem.port)
 		body := fmt.Sprintf(`{"public_key":"%s","endpoint":"%s"}`, publicKey, endpoint)
