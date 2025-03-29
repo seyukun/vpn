@@ -3,6 +3,7 @@
 ## Usage
 
 You need to get a token from http://example.com:3000/api/v0.1-beta/signup
+* symmetric nat isnt supported yet
 
 ```bash
 go build .
