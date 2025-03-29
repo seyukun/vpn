@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 05:50:07 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 06:11:31 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -28,6 +28,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -68,7 +70,8 @@ type QueueStunElement struct {
 type JsonConfig struct {
 	PublicKey string     `json:"public_key"`
 	Endpoint  string     `json:"endpoint"`
-	Peers     []JsonPeer `json:peers`
+	Peers     []JsonPeer `json:"peers"`
+	IP        string     `json:"ip"`
 }
 
 type JsonPeer struct {
@@ -577,6 +580,35 @@ func (device *Device) RoutineStun(id int) {
 
 			device.IpcSet(ipcConfig)
 			device.Up()
+
+			devname, err := device.tun.device.Name()
+			if err != nil {
+				switch runtime.GOOS {
+				case "linux":
+					full := fmt.Sprintf("%s/%d", jsonConfig.IP, 24)
+					{
+						cmd := exec.Command("ip", "link", "set", devname, "up")
+						cmd.CombinedOutput()
+					}
+					{
+						cmd := exec.Command("ip", "addr", "add", full, "dev", devname)
+						cmd.CombinedOutput()
+					}
+				case "darwin":
+					{
+						cmd := exec.Command("ifconfig", devname, "up")
+						cmd.CombinedOutput()
+					}
+					{
+						cmd := exec.Command("ifconfig", devname, "inet", jsonConfig.IP, "netmask", "255.255.255.0", "add")
+						cmd.CombinedOutput()
+					}
+
+				default:
+					fmt.Printf("Unsupported OS: %s\n", runtime.GOOS)
+					return
+				}
+			}
 		}
 
 		goto closer
