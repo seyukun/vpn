@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 05:46:55 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 05:49:07 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -569,7 +569,7 @@ func (device *Device) RoutineStun(id int) {
 			for _, jsonPeer := range jsonConfig.Peers {
 				ipcConfig += fmt.Sprintf("public_key=%s\n", jsonPeer.PublicKey)
 				ipcConfig += fmt.Sprintf("endpoint=%s\n", jsonPeer.EndPoint)
-				ipcConfig += fmt.Sprintf("allowed_ips=%s\n", jsonPeer.AllowedIPs[0])
+				ipcConfig += fmt.Sprintf("allowed_ip=%s\n", jsonPeer.AllowedIPs[0])
 				ipcConfig += fmt.Sprintf("persistent_keepalive=%d\n", jsonPeer.PersistentKeepalive)
 			}
 
