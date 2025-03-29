@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 06:11:31 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 06:12:43 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -582,7 +582,7 @@ func (device *Device) RoutineStun(id int) {
 			device.Up()
 
 			devname, err := device.tun.device.Name()
-			if err != nil {
+			if err == nil {
 				switch runtime.GOOS {
 				case "linux":
 					full := fmt.Sprintf("%s/%d", jsonConfig.IP, 24)
