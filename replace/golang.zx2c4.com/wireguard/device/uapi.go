@@ -250,11 +250,7 @@ func (device *Device) handleDeviceLine(key, value string) error {
 		}
 
 	case "api_authorization":
-		if _, err := url.ParseRequestURI(value); err != nil {
-			return ipcErrorf(ipc.IpcErrorInvalid, "failed to parse api_authorization, invalid value: %v", value)
-		} else {
-			device.api.authorization = value
-		}
+		device.api.authorization = value
 		/* ADDON END */
 
 	default:
