@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 06:12:43 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 06:15:30 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -588,11 +588,15 @@ func (device *Device) RoutineStun(id int) {
 					full := fmt.Sprintf("%s/%d", jsonConfig.IP, 24)
 					{
 						cmd := exec.Command("ip", "link", "set", devname, "up")
-						cmd.CombinedOutput()
+						if _, err := cmd.CombinedOutput(); err != nil {
+							device.log.Errorf("Failed link up: %v", err)
+						}
 					}
 					{
 						cmd := exec.Command("ip", "addr", "add", full, "dev", devname)
-						cmd.CombinedOutput()
+						if _, err := cmd.CombinedOutput(); err != nil {
+							device.log.Errorf("Failed add ip: %v", err)
+						}
 					}
 				case "darwin":
 					{
