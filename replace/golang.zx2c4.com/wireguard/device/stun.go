@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:27:22 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/29 21:21:29 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 04:06:18 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -163,7 +163,7 @@ func (stun *Stun) ParseStunBindingResponse(resp []byte) (ip net.IP, port int, er
 }
 
 func (device *Device) sendStunBindingRequest() {
-	if remoteAddr, err := net.ResolveUDPAddr("udp", "stun.l.google.com:19302"); err != nil {
+	if remoteAddr, err := net.ResolveUDPAddr("udp", device.api.stun); err != nil {
 		device.log.Verbosef("%v - %s", device, err)
 	} else {
 		if stunReq, _, err := stun.CreateStunBindingRequest(); err != nil {

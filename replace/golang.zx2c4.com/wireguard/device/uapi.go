@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/30 00:53:28 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 00:53:29 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 04:05:10 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -263,6 +263,9 @@ func (device *Device) handleDeviceLine(key, value string) error {
 
 	case "api_authorization":
 		device.api.authorization = value
+	
+	case "stun":
+		device.api.stun = value
 		/* ADDON END */
 
 	default:
