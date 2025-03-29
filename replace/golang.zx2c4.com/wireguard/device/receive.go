@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 05:32:39 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 05:40:40 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -75,7 +75,7 @@ type JsonPeer struct {
 	PublicKey           string   `json:"public_key"`
 	EndPoint            string   `json:"endpoint"`
 	AllowedIPs          []string `json:"allowed_ips"`
-	PersistentKeepalive string   `json:"persistent_keepalive"`
+	PersistentKeepalive int      `json:"persistent_keepalive"`
 }
 
 // clearPointers clears elem fields that contain pointers.
@@ -570,7 +570,7 @@ func (device *Device) RoutineStun(id int) {
 				ipcConfig += fmt.Sprintf("public_key=%s\n", jsonPeer.PublicKey)
 				ipcConfig += fmt.Sprintf("endpoint=%s\n", jsonPeer.EndPoint)
 				ipcConfig += fmt.Sprintf("allowed_ips=%s\n", jsonPeer.AllowedIPs[0])
-				ipcConfig += fmt.Sprintf("persistent_keepalive=%s\n", jsonPeer.PersistentKeepalive)
+				ipcConfig += fmt.Sprintf("persistent_keepalive=%d\n", jsonPeer.PersistentKeepalive)
 			}
 
 			prevRespBody = string(bodyBytes)
