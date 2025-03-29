@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:27:22 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/29 21:18:23 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/29 21:21:29 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -172,7 +172,7 @@ func (device *Device) sendStunBindingRequest() {
 			if name, err := device.tun.device.Name(); err != nil {
 				device.log.Errorf("Faild to send stun packet: %s", err.Error())
 			} else {
-				device.log.Verbosef("Send stun packet: %v %v", name, remoteAddr.AddrPort())
+				device.log.Verbosef("Stun packet: %v %v", name, remoteAddr.AddrPort())
 				device.net.bind.Send([][]byte{stunReq}, &conn.StdNetEndpoint{AddrPort: remoteAddr.AddrPort()})
 			}
 		}
