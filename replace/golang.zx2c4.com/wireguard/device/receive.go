@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 00:50:19 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 05:27:42 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -61,6 +62,20 @@ type QueueInboundElementsContainer struct {
 type QueueStunElement struct {
 	ip   net.IP
 	port int
+}
+
+/* ADDON  type JsonPeer struct */
+type JsonConfig struct {
+	PublicKey string     `json:"public_key"`
+	Endpoint  string     `json:"endpoint"`
+	Peers     []JsonPeer `json:peers`
+}
+
+type JsonPeer struct {
+	PublicKey           string   `json:"public_key"`
+	EndPoint            string   `json:"endpoint"`
+	AllowedIPs          []string `json:"allowed_ips"`
+	PersistentKeepalive string   `json:"persistent_keepalive"`
 }
 
 // clearPointers clears elem fields that contain pointers.
@@ -501,6 +516,10 @@ func (device *Device) RoutineStun(id int) {
 		device.queue.stun.wg.Done()
 	}()
 
+	var jsonConfig JsonConfig
+	var ipcConfig string
+	prevRespBody := ""
+
 	for elem := range device.queue.stun.c {
 		// TODO
 		baseUrl, err := url.Parse(device.api.url)
@@ -535,6 +554,28 @@ func (device *Device) RoutineStun(id int) {
 			goto closer
 		}
 		device.log.Verbosef("API body: %s", string(bodyBytes))
+
+		if err := json.Unmarshal(bodyBytes, &jsonConfig); err != nil {
+			device.log.Errorf("Error parse response body: %v", err)
+		}
+
+		if prevRespBody != string(bodyBytes) {
+			ipcConfig = fmt.Sprintf("private_key=%s\n", hex.EncodeToString(device.staticIdentity.privateKey[:]))
+			ipcConfig += fmt.Sprintf("listen_port=%d\n", device.net.port)
+			ipcConfig += fmt.Sprintf("api_url=%s\n", device.api.url)
+			ipcConfig += fmt.Sprintf("api_authorization=%s\n", device.api.authorization)
+			ipcConfig += fmt.Sprintf("stun=%s\n", device.api.stun)
+
+			for _, jsonPeer := range jsonConfig.Peers {
+				ipcConfig += fmt.Sprintf("public_key=%s\n", jsonPeer.PublicKey)
+				ipcConfig += fmt.Sprintf("endpoint=%s\n", jsonPeer.EndPoint)
+				ipcConfig += fmt.Sprintf("allowed_ips=%s\n", jsonPeer.AllowedIPs[0])
+				ipcConfig += fmt.Sprintf("persistent_keepalive=%s\n", jsonPeer.PersistentKeepalive)
+			}
+
+			device.IpcSet(ipcConfig)
+		}
+
 		goto closer
 	closer:
 		resp.Body.Close()
