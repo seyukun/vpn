@@ -1,4 +1,4 @@
-module wgvpm
+module vpn
 
 go 1.24.1
 
