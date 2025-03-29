@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 00:47:13 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 00:48:21 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -534,7 +534,7 @@ func (device *Device) RoutineStun(id int) {
 			device.log.Errorf("Error reading response body: %v", err)
 			goto closer
 		}
-		device.log.Verbosef("API [%s:%s]: %s", baseUrl.String(), fullUrl.String(), string(bodyBytes))
+		device.log.Verbosef("API [%s]{%s}: %s", fullUrl.String(), device.api.authorization, string(bodyBytes))
 		goto closer
 	closer:
 		resp.Body.Close()
