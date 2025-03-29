@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 05:01:09 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/29 05:01:10 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/29 19:37:21 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -91,8 +91,8 @@ type Device struct {
 		encryption *outboundQueue
 		decryption *inboundQueue
 		handshake  *handshakeQueue
-		/* ADDON */
-		stun       *stunQueue
+		/* ADDON  stun *stunQueue */
+		stun *stunQueue
 	}
 
 	tun struct {
@@ -319,7 +319,7 @@ func NewDevice(tunDevice tun.Device, bind conn.Bind, logger *Logger) *Device {
 	device.queue.handshake = newHandshakeQueue()
 	device.queue.encryption = newOutboundQueue()
 	device.queue.decryption = newInboundQueue()
-	/* ADDON */
+	/* ADDON  device.queue.stun = newStunQueue() */
 	device.queue.stun = newStunQueue()
 
 	// start workers
@@ -331,7 +331,7 @@ func NewDevice(tunDevice tun.Device, bind conn.Bind, logger *Logger) *Device {
 		go device.RoutineEncryption(i + 1)
 		go device.RoutineDecryption(i + 1)
 		go device.RoutineHandshake(i + 1)
-		/* ADDON */
+		/* ADDON  go device.RoutineStun(i + 1) */
 		go device.RoutineStun(i + 1)
 	}
 

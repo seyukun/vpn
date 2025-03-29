@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 05:01:12 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/29 05:01:13 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/29 19:20:38 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -83,13 +83,13 @@ func newHandshakeQueue() *handshakeQueue {
 	return q
 }
 
-/* ADDON START */
-
+/* ADDON  type stunQueue struct */
 type stunQueue struct {
 	c  chan QueueStunElement
 	wg sync.WaitGroup
 }
 
+/* ADDON  func newStunQueue() *stunQueue */
 func newStunQueue() *stunQueue {
 	q := &stunQueue{
 		c: make(chan QueueStunElement, QueueStunSize),
@@ -101,8 +101,6 @@ func newStunQueue() *stunQueue {
 	}()
 	return q
 }
-
-/* ADDON END */
 
 type autodrainingInboundQueue struct {
 	c chan *QueueInboundElementsContainer

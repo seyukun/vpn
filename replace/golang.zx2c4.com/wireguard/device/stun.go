@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:27:22 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/29 04:16:17 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/29 20:12:15 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -18,6 +18,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
+
+	"golang.zx2c4.com/wireguard/conn"
 )
 
 const (
@@ -34,8 +36,7 @@ var stun = Stun{
 	transactionId: make([]byte, 12),
 }
 
-/*
-# STUN HEADER FORMAT
+/** STUN HEADER FORMAT
 used in both requests and responses
 
  0                   1                   2                   3
@@ -69,8 +70,7 @@ func (stun *Stun) CreateStunBindingRequest() (req []byte, transactionId []byte, 
 	return req, stun.transactionId, nil
 }
 
-/*
-# STUN RESPONSE BODY FORMAT
+/** STUN RESPONSE BODY FORMAT
 used in responses only
 
  0                   1                   2                   3
@@ -160,4 +160,17 @@ func (stun *Stun) ParseStunBindingResponse(resp []byte) (ip net.IP, port int, er
 		}
 	}
 	return nil, 0, errors.New("XOR-MAPPED-ADDRESS attribute not found")
+}
+
+func (device *Device) sendStunBindingRequest() {
+	if remoteAddr, err := net.ResolveUDPAddr("udp", "stun.l.google.com:19302"); err != nil {
+		device.log.Verbosef("%v - %s", device, err)
+	} else {
+		if stunReq, _, err := stun.CreateStunBindingRequest(); err != nil {
+			device.log.Verbosef("%v - %s", device, err)
+		} else {
+			device.log.Verbosef("%v - Sending stun packet: %v", device, remoteAddr.AddrPort())
+			device.net.bind.Send([][]byte{stunReq}, &conn.StdNetEndpoint{AddrPort: remoteAddr.AddrPort()})
+		}
+	}
 }

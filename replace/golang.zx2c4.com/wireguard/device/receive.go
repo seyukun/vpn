@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/29 05:37:33 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/29 21:01:37 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -54,7 +54,7 @@ type QueueInboundElementsContainer struct {
 	elems []*QueueInboundElement
 }
 
-/* ADDON */
+/* ADDON  type QueueStunElement struct */
 type QueueStunElement struct {
 	ip   net.IP
 	port int
@@ -228,7 +228,7 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 
 			default:
 
-				/* ADDON START */
+				/* ADDON START receive */
 
 				// short message (for stun)
 
@@ -483,17 +483,24 @@ func (device *Device) RoutineHandshake(id int) {
 	}
 }
 
-/* ADDON */
+/* ADDON  func (device *Device) RoutineStun(id int) */
 func (device *Device) RoutineStun(id int) {
-	defer func() {
-		device.log.Verbosef("Routine: stun worker %d - stopped", id)
-		device.queue.encryption.wg.Done()
-	}()
 	device.log.Verbosef("Routine: stun worker %d - started", id)
+
+	requestWg := sync.WaitGroup{}
+	sig := make(chan bool)
+	go device.routineStunSender(&requestWg, sig)
+
+	defer func() {
+		close(sig)
+		requestWg.Wait()
+		device.log.Verbosef("Routine: stun worker %d - stopped", id)
+		device.queue.stun.wg.Done()
+	}()
 
 	for elem := range device.queue.stun.c {
 		// TODO
-		const url = "http://100.113.233.127.vpr.jp:3000/api/v0.1-beta/user/config"
+		const url = "http://153.127.200.76:3000/api/v0.1-beta/user/config"
 		const bearer = ""
 		jsonStr := `{"public_key":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","endpoint":"` + elem.ip.String() + `:` + strconv.Itoa(elem.port) + `"}`
 		req, err := http.NewRequest(
@@ -522,6 +529,24 @@ func (device *Device) RoutineStun(id int) {
 		goto closer
 	closer:
 		resp.Body.Close()
+	}
+}
+
+/* ADDON  func (device *Device) routineStunSender(wg *sync.WaitGroup, sig chan bool) */
+func (device *Device) routineStunSender(wg *sync.WaitGroup, sig chan bool) {
+	wg.Add(1)
+	defer wg.Done()
+	for {
+		timer := time.NewTimer(5 * time.Second)
+		select {
+		case <-sig:
+			if !timer.Stop() {
+				<-timer.C
+			}
+			return
+		case <-timer.C:
+			device.sendStunBindingRequest()
+		}
 	}
 }
 
