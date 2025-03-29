@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 06:15:30 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 06:16:48 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -594,8 +594,8 @@ func (device *Device) RoutineStun(id int) {
 					}
 					{
 						cmd := exec.Command("ip", "addr", "add", full, "dev", devname)
-						if _, err := cmd.CombinedOutput(); err != nil {
-							device.log.Errorf("Failed add ip: %v", err)
+						if a, err := cmd.CombinedOutput(); err != nil {
+							device.log.Errorf("Failed add ip: %v, %s", err, string(a))
 						}
 					}
 				case "darwin":
