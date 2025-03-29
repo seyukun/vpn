@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/29 21:01:37 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 00:32:16 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -20,10 +20,13 @@ package device
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"sync"
 	"time"
@@ -500,20 +503,26 @@ func (device *Device) RoutineStun(id int) {
 
 	for elem := range device.queue.stun.c {
 		// TODO
-		const url = "http://153.127.200.76:3000/api/v0.1-beta/user/config"
-		const bearer = ""
-		jsonStr := `{"public_key":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","endpoint":"` + elem.ip.String() + `:` + strconv.Itoa(elem.port) + `"}`
+		baseUrl, err := url.Parse(device.api.url)
+		if err != nil {
+			device.log.Errorf("Invalid api_url %s", baseUrl)
+			continue
+		}
+		fullUrl := baseUrl.ResolveReference(&url.URL{Path: "/user/config"})
+		publicKey := hex.EncodeToString(device.staticIdentity.publicKey[:])
+		endpoint := elem.ip.String() + `:` + strconv.Itoa(elem.port)
+		body := fmt.Sprintf(`{"public_key":"%s","endpoint":"%s"}`, publicKey, endpoint)
 		req, err := http.NewRequest(
 			"POST",
-			url,
-			bytes.NewBuffer([]byte(jsonStr)),
+			fullUrl.String(),
+			bytes.NewBuffer([]byte(body)),
 		)
 		if err != nil {
 			device.log.Errorf("Invalid stun value", err.Error())
 			continue
 		}
 		req.Header.Set("Content-type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+bearer)
+		req.Header.Set("Authorization", device.api.authorization)
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {

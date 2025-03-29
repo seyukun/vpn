@@ -13,6 +13,7 @@ import (
 	"io"
 	"net"
 	"net/netip"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -239,6 +240,22 @@ func (device *Device) handleDeviceLine(key, value string) error {
 		}
 		device.log.Verbosef("UAPI: Removing all peers")
 		device.RemoveAllPeers()
+
+		/* ADDON START handleDeviceLine */
+	case "api_url":
+		if _, err := url.ParseRequestURI(value); err != nil {
+			return ipcErrorf(ipc.IpcErrorInvalid, "failed to parse api_url, invalid value: %v", value)
+		} else {
+			device.api.url = value
+		}
+
+	case "api_authorization":
+		if _, err := url.ParseRequestURI(value); err != nil {
+			return ipcErrorf(ipc.IpcErrorInvalid, "failed to parse api_authorization, invalid value: %v", value)
+		} else {
+			device.api.authorization = value
+		}
+		/* ADDON END */
 
 	default:
 		return ipcErrorf(ipc.IpcErrorInvalid, "invalid UAPI device key: %v", key)
