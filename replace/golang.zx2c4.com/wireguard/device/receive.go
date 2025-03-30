@@ -6,7 +6,7 @@
 /*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
 /*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
 /*   Created: 2025/03/29 02:12:40 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 06:16:48 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*   Updated: 2025/03/30 17:26:42 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
 /*                                                                                                                      */
 /* ******************************************************************************************************************** */
 
@@ -66,7 +66,7 @@ type QueueStunElement struct {
 	port int
 }
 
-/* ADDON  type JsonPeer struct */
+/* ADDON  type JsonConfig struct */
 type JsonConfig struct {
 	PublicKey string     `json:"public_key"`
 	Endpoint  string     `json:"endpoint"`
@@ -74,11 +74,12 @@ type JsonConfig struct {
 	IP        string     `json:"ip"`
 }
 
+/* ADDON  type JsonPeer struct */
 type JsonPeer struct {
-	PublicKey           string   `json:"public_key"`
-	EndPoint            string   `json:"endpoint"`
-	AllowedIPs          []string `json:"allowed_ips"`
-	PersistentKeepalive int      `json:"persistent_keepalive"`
+	PublicKey           string      `json:"public_key"`
+	EndPoint            string      `json:"endpoint"`
+	AllowedIPs          []string    `json:"allowed_ips"`
+	PersistentKeepalive json.Number `json:"persistent_keepalive"`
 }
 
 // clearPointers clears elem fields that contain pointers.
@@ -570,10 +571,15 @@ func (device *Device) RoutineStun(id int) {
 			ipcConfig += fmt.Sprintf("stun=%s\n", device.api.stun)
 
 			for _, jsonPeer := range jsonConfig.Peers {
+				persistentKeepalive, err := jsonPeer.PersistentKeepalive.Int64()
+				if err != nil {
+					device.log.Errorf("Error parse response persistent_keepalive: %v", err)
+					continue
+				}
 				ipcConfig += fmt.Sprintf("public_key=%s\n", jsonPeer.PublicKey)
 				ipcConfig += fmt.Sprintf("endpoint=%s\n", jsonPeer.EndPoint)
 				ipcConfig += fmt.Sprintf("allowed_ip=%s\n", jsonPeer.AllowedIPs[0])
-				ipcConfig += fmt.Sprintf("persistent_keepalive_interval=%d\n", jsonPeer.PersistentKeepalive)
+				ipcConfig += fmt.Sprintf("persistent_keepalive_interval=%d\n", persistentKeepalive)
 			}
 
 			prevRespBody = string(bodyBytes)
