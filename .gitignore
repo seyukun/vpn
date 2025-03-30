@@ -1,2 +1,7 @@
+# Binary files
 /vpn
+/vpn.exe
+/wintun.dll
+
+# Config files
 /.config
