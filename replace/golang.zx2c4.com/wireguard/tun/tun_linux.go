@@ -1,3 +1,15 @@
+/* ******************************************************************************************************************** */
+/*                                                                                                                      */
+/*                                                      :::    :::     :::     :::     :::   ::: ::::::::::: :::::::::: */
+/*   tun_linux.go                                      :+:   :+:    :+: :+:   :+:     :+:   :+:     :+:     :+:         */
+/*                                                    +:+  +:+    +:+   +:+  +:+      +:+ +:+      +:+     +:+          */
+/*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
+/*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
+/*   Created: 2025/03/30 17:56:26 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
+/*   Updated: 2025/03/30 17:56:27 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
+/*                                                                                                                      */
+/* ******************************************************************************************************************** */
+
 /* SPDX-License-Identifier: MIT
  *
  * Copyright (C) 2017-2023 WireGuard LLC. All Rights Reserved.
@@ -581,6 +593,7 @@ func CreateTUN(name string, mtu int) (Device, error) {
 	return CreateTUNFromFile(fd, mtu)
 }
 
+/* ADDON  func CreateTUNAutoNamed(name string, mtu int) (Device, error) */
 func CreateTUNAutoNamed(name string, mtu int) (Device, error) {
 	var tun Device = nil
 	var err error = nil
