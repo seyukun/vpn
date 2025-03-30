@@ -1,17 +1,5 @@
 //go:build !windows
 
-/* ******************************************************************************************************************** */
-/*                                                                                                                      */
-/*                                                      :::    :::     :::     :::     :::   ::: ::::::::::: :::::::::: */
-/*   main.go                                           :+:   :+:    :+: :+:   :+:     :+:   :+:     :+:     :+:         */
-/*                                                    +:+  +:+    +:+   +:+  +:+      +:+ +:+      +:+     +:+          */
-/*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
-/*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
-/*   Created: 2025/03/30 18:14:19 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 18:18:06 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
-/*                                                                                                                      */
-/* ******************************************************************************************************************** */
-
 package main
 
 import (
@@ -19,6 +7,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+
+	"golang.org/x/sys/unix"
 
 	wgconn "golang.zx2c4.com/wireguard/conn"
 	wgdevice "golang.zx2c4.com/wireguard/device"
@@ -55,6 +45,7 @@ func main() {
 
 	term := make(chan os.Signal, 1)
 	signal.Notify(term, os.Interrupt)
+	signal.Notify(term, unix.SIGTERM)
 
 	select {
 	case <-term:

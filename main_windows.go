@@ -1,15 +1,3 @@
-/* ******************************************************************************************************************** */
-/*                                                                                                                      */
-/*                                                      :::    :::     :::     :::     :::   ::: ::::::::::: :::::::::: */
-/*   main_windows.go                                   :+:   :+:    :+: :+:   :+:     :+:   :+:     :+:     :+:         */
-/*                                                    +:+  +:+    +:+   +:+  +:+      +:+ +:+      +:+     +:+          */
-/*   By: yus-sato <yus-sato@kalyte.ro>               +#++:++    +#++:++#++: +#+       +#++:       +#+     +#++:++#      */
-/*                                                  +#+  +#+   +#+     +#+ +#+        +#+        +#+     +#+            */
-/*   Created: 2025/03/30 18:14:43 by yus-sato      #+#   #+#  #+#     #+# #+#        #+#        #+#     #+#             */
-/*   Updated: 2025/03/30 18:14:53 by yus-sato     ###    ### ###     ### ########## ###        ###     ##########.ro    */
-/*                                                                                                                      */
-/* ******************************************************************************************************************** */
-
 package main
 
 import (
@@ -17,6 +5,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
+
+	"golang.org/x/sys/windows"
 
 	wgconn "golang.zx2c4.com/wireguard/conn"
 	wgdevice "golang.zx2c4.com/wireguard/device"
@@ -51,9 +41,15 @@ func main() {
 	}
 	dev.Up()
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, os.Interrupt)
-	<-sig
+	term := make(chan os.Signal, 1)
+	signal.Notify(term, os.Interrupt)
+	signal.Notify(term, os.Kill)
+	signal.Notify(term, windows.SIGTERM)
 
-	dev.Down()
+	select {
+	case <-term:
+	case <-dev.Wait():
+	}
+
+	dev.Close()
 }
