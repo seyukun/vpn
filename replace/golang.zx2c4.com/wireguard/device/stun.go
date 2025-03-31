@@ -169,10 +169,10 @@ func (device *Device) sendStunBindingRequest() {
 		if stunReq, _, err := stun.CreateStunBindingRequest(); err != nil {
 			device.log.Verbosef("%v - %s", device, err)
 		} else {
-			if name, err := device.tun.device.Name(); err != nil {
+			if _, err := device.tun.device.Name(); err != nil {
 				device.log.Errorf("Faild to send stun packet: %s", err.Error())
 			} else {
-				device.log.Verbosef("Stun packet: %v %v", name, remoteAddr.AddrPort())
+				device.log.Verbosef("Send stun packet: stun server [%v]", remoteAddr.AddrPort())
 				device.net.bind.Send([][]byte{stunReq}, &conn.StdNetEndpoint{AddrPort: remoteAddr.AddrPort()})
 			}
 		}

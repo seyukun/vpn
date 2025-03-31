@@ -506,18 +506,18 @@ func (device *Device) RoutineHandshake(id int) {
 }
 
 /* ADDON  func (device *Device) RoutineStun(id int) */
-func (device *Device) RoutineStun(id int) {
-	device.log.Verbosef("Routine: stun worker %d - started", id)
+func (device *Device) RoutineStun() {
+	device.log.Verbosef("Routine: stun worker - started")
 
-	requestWg := sync.WaitGroup{}
-	sig := make(chan bool)
-	go device.routineStunSender(&requestWg, sig)
+	sig := make(chan struct{})
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	go device.routineStunSender(wg, sig)
 
 	defer func() {
 		close(sig)
-		requestWg.Wait()
-		device.log.Verbosef("Routine: stun worker %d - stopped", id)
-		device.queue.stun.wg.Done()
+		wg.Wait()
+		device.log.Verbosef("Routine: stun worker - stopped")
 	}()
 
 	var jsonConfig JsonConfig
@@ -628,18 +628,21 @@ func (device *Device) RoutineStun(id int) {
 }
 
 /* ADDON  func (device *Device) routineStunSender(wg *sync.WaitGroup, sig chan bool) */
-func (device *Device) routineStunSender(wg *sync.WaitGroup, sig chan bool) {
-	wg.Add(1)
-	defer wg.Done()
+func (device *Device) routineStunSender(wg *sync.WaitGroup, sig chan struct{}) {
+	ticker := time.NewTicker(5 * time.Second)
+
+	defer func() {
+		ticker.Stop()
+		wg.Done()
+	}()
+
 	for {
-		timer := time.NewTimer(5 * time.Second)
 		select {
-		case <-sig:
-			if !timer.Stop() {
-				<-timer.C
+		case _, ok := <-sig:
+			if !ok {
+				return
 			}
-			return
-		case <-timer.C:
+		case <-ticker.C:
 			device.sendStunBindingRequest()
 		}
 	}

@@ -43,7 +43,6 @@ func main() {
 
 	term := make(chan os.Signal, 1)
 	signal.Notify(term, os.Interrupt)
-	signal.Notify(term, os.Kill)
 	signal.Notify(term, windows.SIGTERM)
 
 	select {

@@ -49,7 +49,7 @@ type Device struct {
 		sync.Mutex
 	}
 
-	/* ADDON */
+	/* ADDON  api struct */
 	api struct {
 		url           string
 		authorization string
@@ -340,8 +340,8 @@ func NewDevice(tunDevice tun.Device, bind conn.Bind, logger *Logger) *Device {
 		go device.RoutineHandshake(i + 1)
 	}
 
-	/* ADDON  go device.RoutineStun(i + 1) */
-	go device.RoutineStun(1)
+	/* ADDON  go device.RoutineStun() */
+	go device.RoutineStun()
 
 	device.state.stopping.Add(1)      // RoutineReadFromTUN
 	device.queue.encryption.wg.Add(1) // RoutineReadFromTUN
@@ -417,8 +417,16 @@ func (device *Device) Close() {
 	device.queue.encryption.wg.Done()
 	device.queue.decryption.wg.Done()
 	device.queue.handshake.wg.Done()
-	/* ADDON */
+	/* ADDON  device.queue.stun.wg.Done() */
 	device.queue.stun.wg.Done()
+
+	/* ADDON START */
+	device.queue.encryption.wg.Wait()
+	device.queue.decryption.wg.Wait()
+	device.queue.handshake.wg.Wait()
+	device.queue.stun.wg.Wait()
+	/* ADDON END */
+
 	device.state.stopping.Wait()
 
 	device.rate.limiter.Close()
